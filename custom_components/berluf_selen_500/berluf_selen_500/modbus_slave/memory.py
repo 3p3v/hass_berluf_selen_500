@@ -1,6 +1,6 @@
 from typing import (Callable, List)
-from modbus_device.base.validator import (Validator)
-from modbus_device.base.callb import Callb_store
+from .validator import (Validator)
+from .callb import Callb_store
 
 # %%
 class Memory: # TODO init as many members as possible
@@ -9,12 +9,12 @@ class Memory: # TODO init as many members as possible
         self._callbs: Callb_store = callbs
         return 
     
-    def _get_signle_val(self, addr: int) -> int:
+    def _get_single_val(self, addr: int) -> int:
         raise NotImplementedError()
     
     def get_single_val(self, addr: int) -> int:
         # self._validator_r.validate(addr)
-        return self._get_signle_val(addr)
+        return self._get_single_val(addr)
     
     def set_change_callb(self, addr: int, callb: Callable[[int, list], None], count: int = 1) -> None:
         self._callbs.add_callb(addr, callb, count)

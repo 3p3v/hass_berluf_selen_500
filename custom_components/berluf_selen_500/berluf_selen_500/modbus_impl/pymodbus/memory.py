@@ -1,5 +1,5 @@
-from modbus_device.base.memory import Memory_rw_initializer
-from modbus_device.base.callb import Callb_store
+from ...modbus_slave.memory import Memory_rw_initializer
+from ...modbus_slave.callb import Callb_store
 from pymodbus.datastore import ModbusSparseDataBlock
 
 # %%
