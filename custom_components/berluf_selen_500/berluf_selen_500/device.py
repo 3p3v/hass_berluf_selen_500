@@ -2,7 +2,14 @@ from .modbus_slave.memory import Memory_rw, Memory_rw_initializer
 from .modbus_slave.device import Device
 from .modbus_slave.intf import Slave_builder
 from .modbus_slave.persistant import Memory_persistant, Memory_persistant_factory
-from .modbus_slave.validator import Memory_validator
+from .modbus_slave.validator import (
+    Memory_validator,
+    Equal_handler,
+    One_of_handler,
+    Many_handler,
+    Smaller_equal_handler,
+    Bigger_equal_handler,
+)
 from .modbus_slave.callb import Callb_store
 
 
@@ -82,7 +89,58 @@ class Recup_device(Device):
             60: [2, 25, 0, 24, 1, 0, 25, 25, 25, 0, 10, 10, 2],
             274: [26, 3, 112, 0, 16],
         }
-        holding_registers_mem_rw = {258: [128, 20, 20, 20, 20, 20]}
+        holding_registers_mem_r_v = {
+            0: [
+                Equal_handler(1),
+                Equal_handler(0),
+                Equal_handler(25),
+                Equal_handler(18),
+                Equal_handler(18),
+                Equal_handler(26),
+                Equal_handler(22),
+                Equal_handler(5),
+                Equal_handler(60),
+                Equal_handler(60),
+                Equal_handler(30),
+            ],
+            60: [
+                Equal_handler(2),
+                Equal_handler(25),
+                Equal_handler(0),
+                Equal_handler(24),
+                One_of_handler([0, 1]),
+                One_of_handler([0, 1]),
+                Equal_handler(25),
+                Equal_handler(25),
+                Equal_handler(25),
+                One_of_handler([0, 1, 2]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                One_of_handler([0, 1, 2, 3]),
+            ],
+            274: [
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(50)]),
+                One_of_handler([3, 5, 7, 8]),
+                Many_handler(
+                    [Bigger_equal_handler(0), Smaller_equal_handler(int("11111111", 2))]
+                ),
+                One_of_handler([0, 1]),
+                Equal_handler(16),
+            ],
+        }
+        holding_registers_mem_rw = {258: [0, 20, 20, 20, 20, 20]}
+        holding_registers_mem_rw_v = {
+            258: [
+                Many_handler(
+                    [Bigger_equal_handler(0), Smaller_equal_handler(int("11111111", 2))]
+                ),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+                Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)]),
+            ],
+        }
         self.holding_registers = self._create_memory(
             holding_registers,
             holding_registers_mem_r,

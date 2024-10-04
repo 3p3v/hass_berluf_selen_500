@@ -96,7 +96,7 @@ class Berluf_selen_500_fan(Berluf_selen_500_Entry, NumberEntity):
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(entry)
-        self._attr_native_max_value: float = 100.0
+        self._attr_native_max_value: float = 50.0
         self._attr_native_min_value: float = 0.0
         self._attr_native_step: float = 1.0
 
