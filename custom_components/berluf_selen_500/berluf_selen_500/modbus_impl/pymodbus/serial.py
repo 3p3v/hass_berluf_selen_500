@@ -1,4 +1,18 @@
 from logging import warning
+
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.callb import (
+    Callb_store,
+)
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.device import (
+    Device,
+)
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.memory import (
+    Memory_rw,
+)
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
+    Setter_validator_addr_distributor,
+    Validator,
+)
 from ...modbus_slave.intf import Device_buildable_intf
 from ...modbus_slave.serial import Serial_conf, Device_serial_intf_builder
 from .memory import Pymodbus_memory
@@ -72,28 +86,101 @@ class Pymodbus_serial_intf(Device_buildable_intf):
         conf: Serial_conf = Serial_conf(),
     ):
         self._store: dict = {}
+        self._i = 0
         self._connect_callb = connect_callb
         self._disconnect_callb = disconnect_callb
         self._conf = conf
         return
 
-    def _create_memory(self) -> Pymodbus_memory:
-        return Pymodbus_memory()
+    def _reset_memories(self) -> None:
+        self._coils = self._create_memory(
+            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+        )
+        self._discrete_inputs = self._create_memory(
+            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+        )
+        self._holding_registers = self._create_memory(
+            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+        )
+        self._input_registers = self._create_memory(
+            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+        )
+
+    def _create_memory(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> Pymodbus_memory:
+        return Pymodbus_memory(mem, validator, setter_validator_distributor, callbs)
+
+    def create_coils(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        self._coils = self._create_memory(
+            mem, validator, setter_validator_distributor, callbs
+        )
+
+    def create_discrete_inputs(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        self._discrete_inputs = self._create_memory(
+            mem, validator, setter_validator_distributor, callbs
+        )
+
+    def create_holding_registers(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        self._holding_registers = self._create_memory(
+            mem, validator, setter_validator_distributor, callbs
+        )
+
+    def create_input_registers(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        self._input_registers = self._create_memory(
+            mem, validator, setter_validator_distributor, callbs
+        )
 
     def create_slave(self) -> tuple:
-        # mems = ModbusSlaveContext(self._create_memory(), self._create_memory(), self._create_memory(), self._create_memory())
-        # self._store.append(mems) # TODO Follow mems pattern
-        # return (mems.store['c'], mems.store['d'], mems.store['h'], mems.store['i'])
-        d, c, i, h = (
-            self._create_memory(),
-            self._create_memory(),
-            self._create_memory(),
-            self._create_memory(),
-        )
-        self._store[1] = ModbusSlaveContext(
-            di=d, co=c, ir=i, hr=h, zero_mode=True
+        _discrete_inputs = self._discrete_inputs
+        _coils = self._coils
+        _input_registers = self._input_registers
+        _holding_registers = self._holding_registers
+        self._reset_memories()
+        self._store[self._i] = ModbusSlaveContext(
+            di=_discrete_inputs,
+            co=_coils,
+            ir=_input_registers,
+            hr=_holding_registers,
+            zero_mode=True,
         )  # TODO Follow mems pattern
-        return (c, d, h, i)
+
+        self._i += 1
+
+        return (
+            _coils,
+            _discrete_inputs,
+            _holding_registers,
+            _input_registers,
+        )
 
     async def connect(self) -> None:
         self._context = ModbusServerContext(slaves=self._store, single=False)

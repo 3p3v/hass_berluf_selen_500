@@ -1,72 +1,100 @@
-from typing import (Callable, List)
-from .validator import (Validator)
+from typing import Callable, List
+from .validator import (
+    Memory_validator,
+    Setter_validator,
+    Setter_validator_addr_distributor,
+    Validator,
+    Validator_handler,
+)
 from .callb import Callb_store
 
+
 # %%
-class Memory: # TODO init as many members as possible
-    """ Represents a Modbus memory fragment """
-    def __init__(self, callbs: Callb_store):
-        self._callbs: Callb_store = callbs
-        return 
-    
+class Memory:
+    """Represents a Modbus memory fragment"""
+
+    def __init__(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        callbs: Callb_store,
+    ):
+        self._validator = validator
+        self._callbs = callbs
+
+        for a, v in mem.items():
+            self._set_multi_val(a, v)
+
+        return
+
     def _get_single_val(self, addr: int) -> int:
         raise NotImplementedError()
-    
+
     def get_single_val(self, addr: int) -> int:
-        # self._validator_r.validate(addr)
+        self._validator.validate(addr)
         return self._get_single_val(addr)
-    
-    def set_change_callb(self, addr: int, callb: Callable[[int, list], None], count: int = 1) -> None:
+
+    def _set_single_val(self, addr: int, val: int) -> None:
+        raise NotImplementedError()
+
+    def _set_multi_val(self, addr: int, val: list[int]) -> None:
+        raise NotImplementedError()
+
+    def set_change_callb(
+        self, addr: int, callb: Callable[[int, list], None], count: int = 1
+    ) -> None:  # TODO DELETE
         self._callbs.add_callb(addr, callb, count)
         return
 
-class Memory_r(Memory):
-    """ Represents a Modbus readable memory """
-    def __init__(self):
-        super().__init__()
-        return 
-    
+    def get_callb_service(self) -> Callb_store:
+        return self._callbs
+
+    def get_address_list(self) -> list[int]:
+        return self._validator.get_address_list()
+
+
+# class Memory_r(Memory):
+#     """Represents a Modbus readable memory (readable/writable by master)"""
+
+#     def __init__(self):
+#         super().__init__()
+#         return
+
+
 class Memory_rw(Memory):
-    """ Represents a Modbus readable/writeable memory """
-    def __init__(self, validator_r: Validator = Validator(), validator_rw: Validator = Validator(), callbs: Callb_store = Callb_store()):
-        super().__init__(callbs)
-        self._validator_r: Validator = validator_r # TODO make private
-        self._validator_rw: Validator = validator_rw
-        return 
-    
-    def _set_single_val(self, addr: int, val: int) -> None:
-        raise NotImplementedError()
-    
-    def _set_multi_val(self, addr: int, val: List[int]) -> None:
-        raise NotImplementedError()
-    
-    def set_single_val(self, addr: int, val: int) -> None:
-        self._validator_r.validate(addr)
-        self._set_single_val(addr, val)
+    """Represents a Modbus readable/writeable memory (readable by masster)"""
+
+    class Memory_setter:
+        def __init__(
+            self,
+            impl,
+            validator: Setter_validator,
+        ) -> None:
+            self._impl = impl
+            self._validator = validator
+
+        def set_single_val(self, addr: int, val: int) -> None:
+            self._validator.validate_vals(addr, [val])
+            self._impl._set_single_val(addr, val)
+            return
+
+        def set_multi_val(self, addr: int, val: List[int]) -> None:
+            self._validator.validate_vals(addr, val)
+            self._impl._set_multi_val(addr, val)
+            return
+
+    def __init__(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ):
+        super().__init__(mem, validator, callbs)
+        self._setter_validator_distributor = setter_validator_distributor
         return
-    
-    def set_multi_val(self, addr: int, val: List[int]) -> None:
-        self._validator_r.validate(addr)
-        self._set_multi_val(addr, val)
-        return
-    
-# %%
-class Memory_rw_initializer(Memory_rw): # TODO delete
-    """ Initializer for a memory """
-    
-    def __init__(self):
-        super().__init__()
-        return
-    
-    def set_memory(self, mem: dict):
-        for a, v in mem.items():
-            self.set_multi_val(a, v)
-    
-    def set_validator_service(self, validator_r: Validator, validator_rw: Validator):
-        self._validator_r: Validator = validator_r
-        self._validator_rw: Validator = validator_rw
-        return
-        
-    def set_callb_service(self, callbs: Callb_store):
-        self._callbs: Callb_store = callbs
-        return
+
+    def get_setter(self, addrs: dict[int, list[Validator_handler]]) -> Memory_setter:
+        return Memory_rw.Memory_setter(
+            self, self._setter_validator_distributor.get_setter(addrs)
+        )

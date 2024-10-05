@@ -1,4 +1,12 @@
 from typing import Tuple
+
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.callb import (
+    Callb_store,
+)
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
+    Setter_validator_addr_distributor,
+    Validator,
+)
 from .memory import Memory_rw
 
 
@@ -9,7 +17,43 @@ class Slave_builder:
     # TODO create method to generate memory
     # TODO create method 'attach' to attach device to intf
 
-    def create_slave(self) -> Tuple[Memory_rw, Memory_rw, Memory_rw, Memory_rw]:
+    def create_coils(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        raise NotImplementedError()
+
+    def create_discrete_inputs(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        raise NotImplementedError()
+
+    def create_holding_registers(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        raise NotImplementedError()
+
+    def create_input_registers(
+        self,
+        mem: dict[int, list[int]],
+        validator: Validator,
+        setter_validator_distributor: Setter_validator_addr_distributor,
+        callbs: Callb_store,
+    ) -> None:
+        raise NotImplementedError()
+
+    def create_slave(self) -> tuple[Memory_rw, Memory_rw, Memory_rw, Memory_rw]:
         raise NotImplementedError()
 
 

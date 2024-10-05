@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from .memory import Memory_r, Memory_rw
+from .memory import Memory_rw  # , Memory_r
 
 
 @dataclass

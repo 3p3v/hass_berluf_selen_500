@@ -18,7 +18,7 @@ from .defs import HOME_PATH
 from .berluf_selen_500.device import Recup_device
 from .berluf_selen_500.serial import Recup_serial_intf
 from .berluf_selen_500.serial import Recup_serial_intf
-from .berluf_selen_500.modbus_slave.persistant import Persistant_dummy_factory
+from .berluf_selen_500.modbus_slave.persistant import Persistant_dummy
 from .berluf_selen_500.modbus_impl.pymodbus.serial import Pymodbus_serial_intf_builder
 
 
@@ -57,7 +57,7 @@ async def async_setup_entry(
         disconnect_callb,
     )
     # Persistant memory
-    persist = Persistant_dummy_factory()
+    persist = Persistant_dummy("holding_registers")
     # Device
     device = Recup_device(intf, persist)
 
