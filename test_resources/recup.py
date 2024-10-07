@@ -9,11 +9,11 @@ class Panel:  # TODO make underlying class capable of holding any registry to se
     def __init__(self, cli: ModbusClient):
         self._addr = 1
         self._cli = cli
-        self._01 = 25
-        self._02 = 25
-        self._03 = 25
-        self._04 = 25
-        self._05 = 25
+        self._01 = 26
+        self._02 = 24
+        self._03 = 23
+        self._04 = 22
+        self._05 = 21
         self._ec = 0
         return
 
@@ -52,15 +52,18 @@ class Panel:  # TODO make underlying class capable of holding any registry to se
         return 0
 
     def receive_holding_regs(self):  # for now ignore values
-        print(
-            f"0:   {self._cli.read_holding_registers(0, 11, slave=self._addr).registers}"
-        )
-        print(
-            f"60:  {self._cli.read_holding_registers(60, 13, slave=self._addr).registers}"
-        )
-        print(
-            f"275: {self._cli.read_holding_registers(274, 5, slave=self._addr).registers}"
-        )
+        try:
+            print(
+                f"0:   {self._cli.read_holding_registers(0, 11, slave=self._addr).registers}"
+            )
+            print(
+                f"60:  {self._cli.read_holding_registers(60, 13, slave=self._addr).registers}"
+            )
+            print(
+                f"275: {self._cli.read_holding_registers(274, 5, slave=self._addr).registers}"
+            )
+        except:
+            print("ERROR")
         return
 
 
@@ -74,7 +77,7 @@ async def main():
 
         # panel.receive_holding_regs()
 
-        panel.set_error("00000000")
+        panel.set_error("11111111")
         panel.send_regs()
 
         panel.receive_holding_regs()

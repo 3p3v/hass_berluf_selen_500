@@ -6,7 +6,12 @@ from typing import TYPE_CHECKING, List
 
 import decimal
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+)
+from homeassistant.components.sensor.const import SensorDeviceClass
+from homeassistant.const import UnitOfTemperature
 
 from .data import Berluf_selen_500_ConfigEntry
 from .defs import LOGGER
@@ -103,6 +108,9 @@ class Berluf_selen_500_thermometer(Berluf_selen_500_AsyncEntry, SensorEntity):
         """Initialize the sensor class."""
         super().__init__(entry)
         self.entity_description = entity_description
+
+        # self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
         self._impl = thermometer_class(entry.runtime_data.get_device(), self._callb)
 

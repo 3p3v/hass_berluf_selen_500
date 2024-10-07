@@ -66,7 +66,7 @@ async def main():
         disconnect_callb,
     )
     # Persistant memory
-    persist = persistant.Persistant_dummy_factory()
+    persist = persistant.Persistant_dummy("holding_registers")
     # Device's memory
     recup = recup_device.Recup_device(recup_intf, persist)
 
@@ -84,11 +84,14 @@ async def main():
     # %%
     gwc = recup_funcs.GWC(recup)
     print(persist._mem)
-    gwc.set(True)
+    gwc.set(False)
 
     print(persist._mem)
 
     error = recup_funcs.Error(device=recup, callb=error_callb)
+
+    fan_initializer = recup_funcs.Fans_initializer(recup)
+    supply_fan = recup_funcs.Supply_fan(fan_initializer)
 
     # %%
     await recup_intf.connect()
@@ -96,6 +99,7 @@ async def main():
     while True:
         # print(bypass.get())
         print(error.get())
+        print(supply_fan.set(2))
         await asyncio.sleep(2)
 
 
