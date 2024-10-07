@@ -4,7 +4,7 @@ from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.callb impo
     Callb_store,
 )
 from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
-    Setter_validator_addr_distributor,
+    Setter_validator,
     Validator,
 )
 from .memory import Memory_rw
@@ -21,7 +21,7 @@ class Slave_builder:
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         raise NotImplementedError()
@@ -30,7 +30,7 @@ class Slave_builder:
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         raise NotImplementedError()
@@ -39,7 +39,7 @@ class Slave_builder:
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         raise NotImplementedError()
@@ -48,7 +48,7 @@ class Slave_builder:
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         raise NotImplementedError()

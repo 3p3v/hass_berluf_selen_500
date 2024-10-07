@@ -63,6 +63,12 @@ class Unknown_funcs(Device_func):
                     Equal_handler(25),
                     Equal_handler(25),
                 ],
+                72: [
+                    Equal_handler(2),
+                ],
+                274: [
+                    Equal_handler(20),
+                ],
                 278: [
                     Equal_handler(16),
                 ],
@@ -71,54 +77,106 @@ class Unknown_funcs(Device_func):
         return
 
 
-# %%
-class Supply_fan(Device_func):
-    _addr: int = 70
+class Fans_initializer:  # TODO should exhaust's val be checked?
+    """Common entry point for fans that are independent."""
+
+    addr_exhaust: int = 70
+    addr_supply: int = 71
 
     def __init__(self, device: Device):
-        super().__init__(device)
-        self._holding_registers_setter = device.holding_registers.get_setter(
+        self.device = device
+        sup_val = self.device.holding_registers.get_single_val(self.addr_supply)
+        self.holding_registers_setter = device.holding_registers.get_setter(
             {
-                self._addr: [
+                self.addr_exhaust: [
+                    Many_handler(
+                        [
+                            Bigger_equal_handler(sup_val - 20),
+                            Smaller_equal_handler(sup_val),
+                        ]
+                    )
+                ],
+                self.addr_supply: [
                     Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)])
-                ]
+                ],
             }
         )
         return
-
-    def set(self, val: int) -> None:
-        """Set supply in %"""
-        self._holding_registers_setter.set_single_val(self._addr, val)
-        return
-
-    def get(self) -> int:
-        """Get supply in %"""
-        return self._device.holding_registers.get_single_val(self._addr)
 
 
 # %%
 class Exhaust_fan(Device_func):
-    _addr: int = 71
-
-    def __init__(self, device: Device):
-        super().__init__(device)
-        self._holding_registers_setter = device.holding_registers.get_setter(
+    def __init__(self, initializer: Fans_initializer):
+        super().__init__(initializer.device)
+        self._addr_supply = initializer.addr_supply
+        self._addr_exhaust = initializer.addr_exhaust
+        sup_val = self._device.holding_registers.get_single_val(self._addr_supply)
+        self._holding_registers_setter = self._device.holding_registers.get_setter(
             {
-                self._addr: [
-                    Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)])
-                ]
+                self._addr_exhaust: [
+                    Many_handler(
+                        [
+                            Bigger_equal_handler(sup_val - 20),
+                            Smaller_equal_handler(sup_val),
+                        ]
+                    )
+                ],
             }
         )
         return
 
     def set(self, val: int) -> None:
         """Set supply in %"""
-        self._holding_registers_setter.set_single_val(self._addr, val)
+        self._holding_registers_setter.set_single_val(self._addr_exhaust, val)
         return
 
     def get(self) -> int:
         """Get supply in %"""
-        return self._device.holding_registers.get_single_val(self._addr)
+        return self._device.holding_registers.get_single_val(self._addr_exhaust)
+
+
+# %%
+class Supply_fan(Device_func):
+    def __init__(self, initializer: Fans_initializer):
+        super().__init__(initializer.device)
+        self._addr_supply = initializer.addr_supply
+        self._addr_exhaust = initializer.addr_exhaust
+        self._holding_registers_setter = self._device.holding_registers.get_setter(
+            {
+                self._addr_supply: [
+                    Many_handler([Bigger_equal_handler(0), Smaller_equal_handler(100)])
+                ],
+            }
+        )
+        self._holding_registers_setter.update(
+            self._device.holding_registers.get_setter_unsafe([self._addr_exhaust])
+        )
+        return
+
+    def set(self, val: int) -> tuple[int, int, int]:
+        """Set supply in %. Return val, min, max for the exhaust fan."""
+        # Update value
+        self._holding_registers_setter.set_single_val(self._addr_supply, val)
+        # Update handler so the exhaust can be only >= supply - 20 || <= supply
+        val_min = max(val - 20, 0)
+        self._holding_registers_setter.update_handler(
+            self._addr_exhaust,
+            Many_handler([Bigger_equal_handler(val_min), Smaller_equal_handler(val)]),
+        )
+        # Set the exhaust if is not validated
+        exh_val = self._device.holding_registers.get_single_val(self._addr_exhaust)
+        if exh_val > val:
+            self._holding_registers_setter.set_single_val(self._addr_exhaust, val)
+            exh_val = val
+        elif exh_val < val_min:
+            self._holding_registers_setter.set_single_val(self._addr_exhaust, val_min)
+            exh_val = val
+
+        return exh_val, val_min, val
+
+    def get(self) -> int:
+        """Get supply in %"""
+        return self._device.holding_registers.get_single_val(self._addr_supply)
 
 
 # %%
@@ -174,70 +232,70 @@ class Heater_cooler(Device_func):
 
 
 # %%
-class Fan(Device_func):
-    class Mode(Enum):
-        Off = 0
-        Max = 1
-        User = 2
-        Sleep = 3
+# class Fan(Device_func):
+#     class Mode(Enum):
+#         Off = 0
+#         Max = 1
+#         User = 2
+#         Sleep = 3
 
-    _addr: int = 72
+#     _addr: int = 72
 
-    def __init__(self, device: Device):
-        super().__init__(device)
-        self._holding_registers_setter = device.holding_registers.get_setter(
-            {
-                self._addr: [
-                    One_of_handler(
-                        [
-                            Fan.Mode.Off.value,
-                            Fan.Mode.Max.value,
-                            Fan.Mode.User.value,
-                            Fan.Mode.Sleep.value,
-                        ]
-                    )
-                ]
-            }
-        )
-        return
+#     def __init__(self, device: Device):
+#         super().__init__(device)
+#         self._holding_registers_setter = device.holding_registers.get_setter(
+#             {
+#                 self._addr: [
+#                     One_of_handler(
+#                         [
+#                             Fan.Mode.Off.value,
+#                             Fan.Mode.Max.value,
+#                             Fan.Mode.User.value,
+#                             Fan.Mode.Sleep.value,
+#                         ]
+#                     )
+#                 ]
+#             }
+#         )
+#         return
 
-    def set(self, val: Mode) -> None:
-        """Set heating mode"""
-        self._holding_registers_setter.set_single_val(self._addr, val.value)
-        return
+#     def set(self, val: Mode) -> None:
+#         """Set heating mode"""
+#         self._holding_registers_setter.set_single_val(self._addr, val.value)
+#         return
 
-    def get(self) -> Mode:
-        return Fan.Mode(self._device.holding_registers.get_single_val(self._addr))
+#     def get(self) -> Mode:
+#         return Fan.Mode(self._device.holding_registers.get_single_val(self._addr))
 
 
 # %%
-class Temperature_sensor(Device_func):
-    _addr: int = 274
+# class Temperature_sensor(Device_func):
+#     _addr: int = 274
 
-    def __init__(self, device: Device):
-        super().__init__(device)
-        self._holding_registers_setter = device.holding_registers.get_setter(
-            {
-                self._addr: [
-                    Many_handler(
-                        [
-                            Bigger_equal_handler(int("00000000", 2)),
-                            Smaller_equal_handler(int("11111111", 2)),
-                        ]
-                    )
-                ]
-            }
-        )
-        return
+#     def __init__(self, device: Device):
+#         super().__init__(device)
+#         self._holding_registers_setter = device.holding_registers.get_setter(
+#             {
+#                 self._addr: [
+#                     Many_handler(
+#                         [
+#                             Bigger_equal_handler(int("00000000", 2)),
+#                             Smaller_equal_handler(int("11111111", 2)),
+#                         ]
+#                     )
+#                 ]
+#             }
+#         )
+#         return
 
-    def set(self, val: int) -> None:
-        """Set teperature sensor value"""
-        self._holding_registers_setter.set_single_val(self._addr, val)
-        return
+#     def set(self, val: int) -> None:
+#         """Set teperature sensor value"""
+#         self._holding_registers_setter.set_single_val(self._addr, val)
+#         return
 
-    def get(self) -> int:
-        """Get teperature sensor value"""
-        return self._device.holding_registers.get_single_val(self._addr)
+#     def get(self) -> int:
+#         """Get teperature sensor value"""
+#         return self._device.holding_registers.get_single_val(self._addr)
 
 
 # %%

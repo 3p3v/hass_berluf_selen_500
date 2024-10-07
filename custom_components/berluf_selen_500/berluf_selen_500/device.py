@@ -2,10 +2,7 @@ from .modbus_slave.memory import Memory_rw
 from .modbus_slave.device import Device
 from .modbus_slave.intf import Slave_builder
 from .modbus_slave.persistant import Memory_persistant
-from .modbus_slave.validator import (
-    Memory_validator,
-    Setter_validator_addr_distributor,
-)
+from .modbus_slave.validator import Memory_validator, Setter_validator
 from .modbus_slave.callb import Callb_store
 from copy import deepcopy
 
@@ -70,7 +67,7 @@ class Recup_device(Device):
 
         # All addresses
         addrs = self._get_valid_mem(mem_slave)
-        validator_distributor = Setter_validator_addr_distributor(deepcopy(addrs))
+        setter_validator = Setter_validator(deepcopy(addrs))
         addrs.extend(self._get_valid_mem(mem_master))
         validator = Memory_validator(addrs)
 
@@ -92,7 +89,5 @@ class Recup_device(Device):
                 for a, v in mem.items():
                     persistant.save(a, v)
 
-        impl_builder.create_holding_registers(
-            mem, validator, validator_distributor, callbs
-        )
+        impl_builder.create_holding_registers(mem, validator, setter_validator, callbs)
         return

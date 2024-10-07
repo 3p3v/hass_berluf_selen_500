@@ -1,5 +1,5 @@
 from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
-    Setter_validator_addr_distributor,
+    Setter_validator,
     Validator,
 )
 from ...modbus_slave.memory import Memory_rw
@@ -15,12 +15,16 @@ class Pymodbus_memory(Memory_rw, ModbusSparseDataBlock):  # TODO change to proxy
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ):
-        Memory_rw.__init__(self, mem, validator, setter_validator_distributor, callbs)
+        Memory_rw.__init__(self, validator, setter_validator, callbs)
         ModbusSparseDataBlock.__init__(self)
-        # super(Pymodbus_memory, self).__init__()
+
+        # Set memory
+        for a, v in mem.items():
+            self._set_multi_val(a, v)
+
         return
 
     def _get_single_val(self, addr: int) -> int:

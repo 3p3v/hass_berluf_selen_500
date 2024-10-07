@@ -10,7 +10,7 @@ from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.memory imp
     Memory_rw,
 )
 from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
-    Setter_validator_addr_distributor,
+    Setter_validator,
     Validator,
 )
 from ...modbus_slave.intf import Device_buildable_intf
@@ -21,7 +21,7 @@ from pymodbus.server import ModbusSerialServer
 
 import asyncio
 from asyncio import Event
-from typing import Callable
+from typing import Callable, override
 
 
 class Pymodbus_serial_server(ModbusSerialServer):
@@ -86,79 +86,84 @@ class Pymodbus_serial_intf(Device_buildable_intf):
         conf: Serial_conf = Serial_conf(),
     ):
         self._store: dict = {}
-        self._i = 0
+        self._i = 1
         self._connect_callb = connect_callb
         self._disconnect_callb = disconnect_callb
         self._conf = conf
+
+        self._reset_memories()
         return
 
     def _reset_memories(self) -> None:
         self._coils = self._create_memory(
-            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+            {}, Validator(), Setter_validator([]), Callb_store()
         )
         self._discrete_inputs = self._create_memory(
-            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+            {}, Validator(), Setter_validator([]), Callb_store()
         )
         self._holding_registers = self._create_memory(
-            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+            {}, Validator(), Setter_validator([]), Callb_store()
         )
         self._input_registers = self._create_memory(
-            {}, Validator(), Setter_validator_addr_distributor([]), Callb_store()
+            {}, Validator(), Setter_validator([]), Callb_store()
         )
 
     def _create_memory(
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> Pymodbus_memory:
-        return Pymodbus_memory(mem, validator, setter_validator_distributor, callbs)
+        return Pymodbus_memory(mem, validator, setter_validator, callbs)
 
+    @override
     def create_coils(
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
-        self._coils = self._create_memory(
-            mem, validator, setter_validator_distributor, callbs
-        )
+        self._coils = self._create_memory(mem, validator, setter_validator, callbs)
 
+    @override
     def create_discrete_inputs(
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         self._discrete_inputs = self._create_memory(
-            mem, validator, setter_validator_distributor, callbs
+            mem, validator, setter_validator, callbs
         )
 
+    @override
     def create_holding_registers(
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         self._holding_registers = self._create_memory(
-            mem, validator, setter_validator_distributor, callbs
+            mem, validator, setter_validator, callbs
         )
 
+    @override
     def create_input_registers(
         self,
         mem: dict[int, list[int]],
         validator: Validator,
-        setter_validator_distributor: Setter_validator_addr_distributor,
+        setter_validator: Setter_validator,
         callbs: Callb_store,
     ) -> None:
         self._input_registers = self._create_memory(
-            mem, validator, setter_validator_distributor, callbs
+            mem, validator, setter_validator, callbs
         )
 
+    @override
     def create_slave(self) -> tuple:
         _discrete_inputs = self._discrete_inputs
         _coils = self._coils
@@ -182,6 +187,7 @@ class Pymodbus_serial_intf(Device_buildable_intf):
             _input_registers,
         )
 
+    @override
     async def connect(self) -> None:
         self._context = ModbusServerContext(slaves=self._store, single=False)
         self._server = Pymodbus_serial_server(
@@ -204,6 +210,7 @@ class Pymodbus_serial_intf(Device_buildable_intf):
         await self._server.run_connect()
         return
 
+    @override
     async def disconnect(self) -> None:
         await self._server.run_disconnect()
         return
