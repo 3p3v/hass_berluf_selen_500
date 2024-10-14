@@ -77,7 +77,7 @@ async def main():
 
         # panel.receive_holding_regs()
 
-        panel.set_error("00000000")
+        panel.set_error("00000010")
         panel.send_regs()
 
         panel.receive_holding_regs()

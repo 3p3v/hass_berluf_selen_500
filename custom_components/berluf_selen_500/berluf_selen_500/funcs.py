@@ -524,7 +524,7 @@ class Error(Device_func):
 
 # %%
 class Bypass(Device_func):
-    _On = int("00001000")
+    _On = int("00001000", 2)
 
     _addr: int = 258
 
@@ -553,7 +553,7 @@ class Bypass(Device_func):
 
 # %%
 class Heater(Device_func):
-    _On = int("00000010")
+    _On = int("00000010", 2)
 
     _addr: int = 258
 
@@ -579,7 +579,7 @@ class Heater(Device_func):
 
 # %%
 class Pump(Device_func):
-    _On = int("00000100")
+    _On = int("00000100", 2)
 
     _addr: int = 258
 
