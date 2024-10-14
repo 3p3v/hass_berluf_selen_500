@@ -48,5 +48,5 @@ class Collective_persistant:
 class Collective_persistant_manager:
     def link(self, memory: Memory, persistant: Collective_persistant) -> None:
         memory.get_callb_service().add_callb_per_addr(
-            memory.get_address_list(), lambda a, v: persistant.save()
+            list(range(258, 258 + 6)), lambda a, v: persistant.save()
         )
