@@ -22,7 +22,7 @@ class Validator_handler:
 class Equal_handler(Validator_handler):
     """Return true if values are equal."""
 
-    def __init__(self, val_eq: int):
+    def __init__(self, val_eq: int) -> None:
         self._val_eq = val_eq
 
     @override
@@ -33,7 +33,7 @@ class Equal_handler(Validator_handler):
 class One_of_handler(Validator_handler):
     """Return true if values are equal."""
 
-    def __init__(self, val_eq: list[int]):
+    def __init__(self, val_eq: list[int]) -> None:
         self._val_eq = val_eq
 
     @override
@@ -44,7 +44,7 @@ class One_of_handler(Validator_handler):
 class Smaller_handler(Validator_handler):
     """Return true if given value is smaller."""
 
-    def __init__(self, val_big: int):
+    def __init__(self, val_big: int) -> None:
         self._val_big = val_big
 
     @override
@@ -53,7 +53,7 @@ class Smaller_handler(Validator_handler):
 
 
 class Bigger_equal_handler(Smaller_handler):
-    def __init__(self, val_small: int):
+    def __init__(self, val_small: int) -> None:
         super().__init__(val_small)
 
     @override
@@ -64,7 +64,7 @@ class Bigger_equal_handler(Smaller_handler):
 class Bigger_handler(Validator_handler):
     """Return true if given value is smaller."""
 
-    def __init__(self, val_small: int):
+    def __init__(self, val_small: int) -> None:
         self._val_small = val_small
 
     @override
@@ -73,7 +73,7 @@ class Bigger_handler(Validator_handler):
 
 
 class Smaller_equal_handler(Smaller_handler):
-    def __init__(self, val_big: int):
+    def __init__(self, val_big: int) -> None:
         super().__init__(val_big)
 
     @override
@@ -82,7 +82,7 @@ class Smaller_equal_handler(Smaller_handler):
 
 
 class Many_handler(Validator_handler):
-    def __init__(self, valids: list[Validator_handler]):
+    def __init__(self, valids: list[Validator_handler]) -> None:
         self._valids = valids
         return
 
@@ -98,7 +98,7 @@ class None_validator(Validator_handler):
 
 
 class Memory_validator(Validator):
-    def __init__(self, addrs: list):
+    def __init__(self, addrs: list) -> None:
         self._addrs = addrs
         return
 
@@ -121,8 +121,8 @@ class Memory_validator(Validator):
 
 # %%
 class Setter_validator(Validator):
-    # def __init__(self, addr_valids: dict[int, list[Validator_handler]]):
-    def __init__(self, addr: list[int]):
+    # def __init__(self, addr_valids: dict[int, list[Validator_handler]]) -> None:
+    def __init__(self, addr: list[int]) -> None:
         self._addrs: dict[int, Validator_handler] = {}
         # Add vallidators one by one
         for a in addr:
@@ -165,7 +165,7 @@ class Setter_validator(Validator):
             else:
                 raise RuntimeError(f"Address {addr} is inaccessable in this context.")
 
-    def update_handler(self, addr: int, handler: Validator_handler):
+    def update_handler(self, addr: int, handler: Validator_handler) -> None:
         try:
             self._addrs[addr] = handler
         except:
@@ -173,7 +173,7 @@ class Setter_validator(Validator):
 
 
 # class Setter_validator_addr_distributor:
-#     def __init__(self, addrs: list[int]):
+#     def __init__(self, addrs: list[int]) -> None:
 #         self._addrs = addrs
 
 #     def _addr_dict_to_list(

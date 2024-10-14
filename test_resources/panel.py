@@ -6,8 +6,9 @@
 
 # %%
 # Pymodbus
-from pickle import NONE
-from uu import Error
+from custom_components.berluf_selen_500.berluf_selen_500.modbus_impl.asyncio.timer import (
+    Asyncio_timer_factory,
+)
 from custom_components.berluf_selen_500.berluf_selen_500.modbus_impl.pymodbus import (
     serial as pymodbus_serial,
 )
@@ -25,12 +26,6 @@ from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave import per
 from custom_components.berluf_selen_500.berluf_selen_500 import funcs as recup_funcs
 
 import asyncio
-# import importlib
-# importlib.reload(pymodbus_serial)
-# importlib.reload(recup_serial)
-# importlib.reload(recup_device)
-# importlib.reload(persistant)
-# importlib.reload(recup_funcs)
 
 
 # %%
@@ -60,15 +55,15 @@ def error_callb(ecs: list[recup_funcs.Error.Error]):
 async def main():
     # Interface for connectiong to serial
     recup_intf = recup_serial.Recup_serial_intf(
-        "/dev/pts/3",
+        "/dev/pts/4",
         pymodbus_serial.Pymodbus_serial_intf_builder(),
         connect_callb,
         disconnect_callb,
     )
     # Persistant memory
-    persist = persistant.Persistant_dummy("holding_registers")
+    # persist = persistant.Persistant_dummy("holding_registers")
     # Device's memory
-    recup = recup_device.Recup_device(recup_intf, persist)
+    recup = recup_device.Recup_device(recup_intf, None)
 
     # %%
     recup.holding_registers.get_single_val(1)
@@ -83,12 +78,14 @@ async def main():
 
     # %%
     gwc = recup_funcs.GWC(recup)
-    print(persist._mem)
+    # print(persist._mem)
     gwc.set(False)
 
-    print(persist._mem)
+    # print(persist._mem)
 
-    error = recup_funcs.Error(device=recup, callb=error_callb)
+    error = recup_funcs.Error(
+        device=recup, timer_factory=Asyncio_timer_factory(), callb=error_callb
+    )
 
     fan_initializer = recup_funcs.Fans_initializer(recup)
     supply_fan = recup_funcs.Supply_fan(fan_initializer)

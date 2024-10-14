@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import importlib
 
 from homeassistant.const import CONF_PORT, Platform
 
 # from homeassistant.loader import async_get_loaded_integration
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.storage import Store
 
-from .defs import LOGGER
-
+from .defs import LOGGER, get_default_store_name
 from .data import Berluf_selen_500_Data
 from .data import Berluf_selen_500_ConfigEntry
-from .defs import HOME_PATH
+from .persistant import Hass_persistant_loader, Hass_rapid_persistant
 
 from .berluf_selen_500.device import Recup_device
 from .berluf_selen_500.serial import Recup_serial_intf
 from .berluf_selen_500.serial import Recup_serial_intf
 from .berluf_selen_500.modbus_slave.persistant import Persistant_dummy
 from .berluf_selen_500.modbus_impl.pymodbus.serial import Pymodbus_serial_intf_builder
+from .berluf_selen_500.modbus_slave.persistant import Collective_persistant_manager
 
 
 if TYPE_CHECKING:
@@ -57,9 +57,24 @@ async def async_setup_entry(
         disconnect_callb,
     )
     # Persistant memory
-    persist = Persistant_dummy("holding_registers")
+    store = Store[dict[str, dict[int, list[int]]]](
+        hass, 1, get_default_store_name(entry)
+    )
+    persist_loader = Hass_persistant_loader("holding_registers", store)
     # Device
-    device = Recup_device(intf, persist)
+    try:
+        mem = await persist_loader.load()
+        LOGGER.debug(f"Default memory: {mem}")
+    except:
+        mem = None
+
+    device = Recup_device(intf, mem)
+
+    # Create persistant saver and link it
+    persist = Hass_rapid_persistant(
+        "holding_registers", device.holding_registers, store
+    )
+    Collective_persistant_manager().link(device.holding_registers, persist)
 
     entry.runtime_data = Berluf_selen_500_Data(intf=intf, device=device)
 
@@ -87,7 +102,9 @@ async def async_unload_entry(
     entry: Berluf_selen_500_ConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
+    # Disconnect from
     await entry.runtime_data.get_intf().disconnect()
+    entry.runtime_data.get_timer().cancel()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

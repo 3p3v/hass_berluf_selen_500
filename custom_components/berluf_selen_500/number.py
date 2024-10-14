@@ -33,7 +33,7 @@ async def async_setup_entry(
         entry=entry,
         entity_description=NumberEntityDescription(
             key="berluf_selen_500",
-            name="Berluf Selen 500 exhaust fan",
+            name="Selen exhaust fan",
             # icon="mdi:format-quote-close",
         ),
     )
@@ -49,7 +49,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=NumberEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 supply fan",
+                    name="Selen supply fan",
                     # icon="mdi:format-quote-close",
                 ),
             ),

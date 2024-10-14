@@ -69,5 +69,5 @@ class Device_intf:
 
 
 class Device_buildable_intf(Slave_builder, Device_intf):
-    def __init__(self):
+    def __init__(self) -> None:
         return

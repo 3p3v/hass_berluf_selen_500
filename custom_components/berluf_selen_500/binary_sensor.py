@@ -34,7 +34,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=BinarySensorEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 bypass indicator",
+                    name="Selen bypass",
                     # device_class=BinarySensorDeviceClass.CONNECTIVITY, # FIXME For now Set to "None"
                 ),
             ),
@@ -42,7 +42,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=BinarySensorEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 heater indicator",
+                    name="Selen heater",
                     # device_class=BinarySensorDeviceClass.CONNECTIVITY, # FIXME For now Set to "None"
                 ),
             ),
@@ -50,7 +50,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=BinarySensorEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 pump indicator",
+                    name="Selen pump",
                     # device_class=BinarySensorDeviceClass.CONNECTIVITY, # FIXME For now Set to "None"
                 ),
             ),
@@ -67,13 +67,13 @@ class Berluf_selen_500_bypass(Berluf_selen_500_AsyncEntry, BinarySensorEntity):
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary_sensor class."""
-        super().__init__(entry)
+        super().__init__(entry, "bypass")
         self.entity_description = entity_description
 
         self._impl = Bypass(entry.runtime_data.get_device(), self._callb)
         return
 
-    def _callb(self, val: bool):
+    def _callb(self, val: bool) -> None:
         LOGGER.debug(f"Bypass: {self._impl.get()}")
         self._fire_change_callb()
 
@@ -103,7 +103,7 @@ class Berluf_selen_500_heater(Berluf_selen_500_AsyncEntry, BinarySensorEntity):
         self._impl = Heater(entry.runtime_data.get_device(), self._callb)
         return
 
-    def _callb(self, val: bool):
+    def _callb(self, val: bool) -> None:
         self._fire_change_callb()
 
     @property
@@ -131,7 +131,7 @@ class Berluf_selen_500_pump(Berluf_selen_500_AsyncEntry, BinarySensorEntity):
         self._impl = Pump(entry.runtime_data.get_device(), self._callb)
         return
 
-    def _callb(self, val: bool):
+    def _callb(self, val: bool) -> None:
         self._fire_change_callb()
 
     @property
