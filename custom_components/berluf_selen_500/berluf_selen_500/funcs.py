@@ -19,23 +19,10 @@ from .modbus_slave.device import Device
 from .modbus_slave.timer import Timer_factory
 
 
-class Recup_timeout_manager(Timeout_manager):
-    def __init__(
-        self,
-        device: Device,
-        timer_factory: Timer_factory,
-        timeout: int,
-        callb: Callable[[], None],
-    ):
-        super().__init__(
-            device.holding_registers, list(range(258, 6)), timer_factory, timeout, callb
-        )
-
-
 class Unknown_funcs(Device_func):
     """Disable unused values."""
 
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         super().__init__(device)
         self._holding_registers_setter = device.holding_registers.get_setter(
             {
@@ -83,7 +70,7 @@ class Fans_initializer:  # TODO should exhaust's val be checked?
     addr_exhaust: int = 70
     addr_supply: int = 71
 
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         self.device = device
         sup_val = self.device.holding_registers.get_single_val(self.addr_supply)
         self.holding_registers_setter = device.holding_registers.get_setter(
@@ -106,7 +93,7 @@ class Fans_initializer:  # TODO should exhaust's val be checked?
 
 # %%
 class Exhaust_fan(Device_func):
-    def __init__(self, initializer: Fans_initializer):
+    def __init__(self, initializer: Fans_initializer) -> None:
         super().__init__(initializer.device)
         self._addr_supply = initializer.addr_supply
         self._addr_exhaust = initializer.addr_exhaust
@@ -137,7 +124,7 @@ class Exhaust_fan(Device_func):
 
 # %%
 class Supply_fan(Device_func):
-    def __init__(self, initializer: Fans_initializer):
+    def __init__(self, initializer: Fans_initializer) -> None:
         super().__init__(initializer.device)
         self._addr_supply = initializer.addr_supply
         self._addr_exhaust = initializer.addr_exhaust
@@ -183,7 +170,7 @@ class Supply_fan(Device_func):
 class GWC(Device_func):
     _addr: int = 64
 
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         super().__init__(device)
         self._holding_registers_setter = device.holding_registers.get_setter(
             {self._addr: [One_of_handler([0, 1])]}
@@ -207,7 +194,7 @@ class Heater_cooler(Device_func):
 
     _addr: int = 65
 
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         super().__init__(device)
         self._holding_registers_setter = device.holding_registers.get_setter(
             {
@@ -241,7 +228,7 @@ class Heater_cooler(Device_func):
 
 #     _addr: int = 72
 
-#     def __init__(self, device: Device):
+#     def __init__(self, device: Device) -> None:
 #         super().__init__(device)
 #         self._holding_registers_setter = device.holding_registers.get_setter(
 #             {
@@ -272,7 +259,7 @@ class Heater_cooler(Device_func):
 # class Temperature_sensor(Device_func):
 #     _addr: int = 274
 
-#     def __init__(self, device: Device):
+#     def __init__(self, device: Device) -> None:
 #         super().__init__(device)
 #         self._holding_registers_setter = device.holding_registers.get_setter(
 #             {
@@ -298,6 +285,25 @@ class Heater_cooler(Device_func):
 #         return self._device.holding_registers.get_single_val(self._addr)
 
 
+class Recup_timeout_manager(Timeout_manager):
+    def __init__(
+        self,
+        device: Device,
+        timer_factory: Timer_factory,
+        timeout: int,
+        reset_callb: Callable[[], None],
+        callb: Callable[[], None],
+    ):
+        super().__init__(
+            device.holding_registers,
+            list(range(258, 258 + 6)),
+            timer_factory,
+            timeout,
+            reset_callb,
+            callb,
+        )
+
+
 # %%
 class Error(Device_func):
     class Error(Enum):
@@ -312,6 +318,7 @@ class Error(Device_func):
         E5 = 6
         E6 = 7
         E7 = 8
+        E8 = 9
 
     class Recup_error(Enum):
         """Bits set in registry sent by master"""
@@ -349,7 +356,7 @@ class Error(Device_func):
     _addr_vis: int = 276
 
     # Callbacks run when registry state changes
-    def _set_change_callb_err(self, addr: int, _val: list):
+    def _set_change_callb_err(self, addr: int, _val: list) -> None:
         val: int = _val[0]
         pre = len(self._ecs)
 
@@ -386,7 +393,7 @@ class Error(Device_func):
             self._callb(list(self._ecs))
         return
 
-    def _set_change_callb_0X(self, val: list, ec: Error):
+    def _set_change_callb_0X(self, val: list, ec: Error) -> None:
         if val[0] == self._EX:
             self._ecs.add(ec)
             self._callb(list(self._ecs))
@@ -395,27 +402,40 @@ class Error(Device_func):
             self._callb(list(self._ecs))
         return
 
-    def _set_change_callb_01(self, addr: int, val: list):
+    def _set_change_callb_01(self, addr: int, val: list) -> None:
         self._set_change_callb_0X(val, Error.Error.E2)
         return
 
-    def _set_change_callb_02(self, addr: int, val: list):
+    def _set_change_callb_02(self, addr: int, val: list) -> None:
         self._set_change_callb_0X(val, Error.Error.E3)
         return
 
-    def _set_change_callb_03(self, addr: int, val: list):
+    def _set_change_callb_03(self, addr: int, val: list) -> None:
         self._set_change_callb_0X(val, Error.Error.E4)
         return
 
-    def _set_change_callb_04(self, addr: int, val: list):
+    def _set_change_callb_04(self, addr: int, val: list) -> None:
         self._set_change_callb_0X(val, Error.Error.E5)
         return
 
-    def _set_change_callb_05(self, addr: int, val: list):
+    def _set_change_callb_05(self, addr: int, val: list) -> None:
         self._set_change_callb_0X(val, Error.Error.E6)
         return
 
-    def __init__(self, device: Device, callb: Callable[[list[Error]], None]):
+    def _timeout_callb(self) -> None:
+        self._ecs.add(Error.Error.E8)
+        self._callb(list(self._ecs))
+
+    def _reset_callb(self) -> None:
+        self._ecs.discard(Error.Error.E8)
+        self._callb(list(self._ecs))
+
+    def __init__(
+        self,
+        device: Device,
+        timer_factory: Timer_factory,
+        callb: Callable[[list[Error]], None],
+    ):
         """callb is used when error arises"""
         super().__init__(device)
         self._holding_registers_setter = device.holding_registers.get_setter(
@@ -430,6 +450,11 @@ class Error(Device_func):
                 ]
             }
         )
+
+        self._timer = Recup_timeout_manager(
+            device, timer_factory, 30, self._reset_callb, self._timeout_callb
+        )
+        self._timer.start()
 
         self._ecs = set()
         self._callb = callb
@@ -454,8 +479,11 @@ class Error(Device_func):
 
         return
 
+    def cancel(self) -> None:
+        self._timer.cancel()
+
     def reset(self) -> list:
-        """Reset errors on monitor"""
+        """Reset errors on monitor."""
         # Reset monitor error registry so master knows we acked it
         self._holding_registers_setter.set_single_val(
             self._addr_vis, Error.Visible_error.OK.value
@@ -500,14 +528,14 @@ class Bypass(Device_func):
 
     _addr: int = 258
 
-    def _set_change_callb(self, addr: int, val: list):
+    def _set_change_callb(self, addr: int, val: list) -> None:
         if val[0] & self._On:
             self._callb(True)
         else:
             self._callb(False)
         return
 
-    def __init__(self, device: Device, callb: Callable[[bool], None]):
+    def __init__(self, device: Device, callb: Callable[[bool], None]) -> None:
         super().__init__(device)
 
         self._callb = callb
@@ -529,11 +557,11 @@ class Heater(Device_func):
 
     _addr: int = 258
 
-    def _set_change_callb(self, addr: int, val: list):
+    def _set_change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0] & self._On)
         return
 
-    def __init__(self, device: Device, callb: Callable[[bool], None]):
+    def __init__(self, device: Device, callb: Callable[[bool], None]) -> None:
         super().__init__(device)
 
         self._callb = callb
@@ -555,11 +583,11 @@ class Pump(Device_func):
 
     _addr: int = 258
 
-    def _set_change_callb(self, addr: int, val: list):
+    def _set_change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0] & self._On)
         return
 
-    def __init__(self, device: Device, callb: Callable[[bool], None]):
+    def __init__(self, device: Device, callb: Callable[[bool], None]) -> None:
         super().__init__(device)
 
         self._callb = callb
@@ -580,10 +608,10 @@ class Pump(Device_func):
 class Thermometer_01(Device_func):
     _addr: int = 259
 
-    def _change_callb(self, addr: int, val: list):
+    def _change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0])
 
-    def __init__(self, device: Device, callb: Callable[[int], None]):
+    def __init__(self, device: Device, callb: Callable[[int], None]) -> None:
         super().__init__(device)
         self._callb = callb
         self._device.holding_registers.set_change_callb(self._addr, self._change_callb)
@@ -598,10 +626,10 @@ class Thermometer_01(Device_func):
 class Thermometer_02(Device_func):
     _addr: int = 260
 
-    def _change_callb(self, addr: int, val: list):
+    def _change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0])
 
-    def __init__(self, device: Device, callb: Callable[[int], None]):
+    def __init__(self, device: Device, callb: Callable[[int], None]) -> None:
         super().__init__(device)
         self._callb = callb
         self._device.holding_registers.set_change_callb(self._addr, self._change_callb)
@@ -616,10 +644,10 @@ class Thermometer_02(Device_func):
 class Thermometer_03(Device_func):
     _addr: int = 261
 
-    def _change_callb(self, addr: int, val: list):
+    def _change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0])
 
-    def __init__(self, device: Device, callb: Callable[[int], None]):
+    def __init__(self, device: Device, callb: Callable[[int], None]) -> None:
         super().__init__(device)
         self._callb = callb
         self._device.holding_registers.set_change_callb(self._addr, self._change_callb)
@@ -634,10 +662,10 @@ class Thermometer_03(Device_func):
 class Thermometer_04(Device_func):
     _addr: int = 262
 
-    def _change_callb(self, addr: int, val: list):
+    def _change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0])
 
-    def __init__(self, device: Device, callb: Callable[[int], None]):
+    def __init__(self, device: Device, callb: Callable[[int], None]) -> None:
         super().__init__(device)
         self._callb = callb
         self._device.holding_registers.set_change_callb(self._addr, self._change_callb)
@@ -652,10 +680,10 @@ class Thermometer_04(Device_func):
 class Thermometer_05(Device_func):
     _addr: int = 263
 
-    def _change_callb(self, addr: int, val: list):
+    def _change_callb(self, addr: int, val: list) -> None:
         self._callb(val[0])
 
-    def __init__(self, device: Device, callb: Callable[[int], None]):
+    def __init__(self, device: Device, callb: Callable[[int], None]) -> None:
         super().__init__(device)
         self._callb = callb
         self._device.holding_registers.set_change_callb(self._addr, self._change_callb)

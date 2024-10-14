@@ -5,7 +5,7 @@ from typing import Callable, List
 class Callb_store:  # TODO find some more efficient way to store callbacks, FIXME run callback one time, instead of multiple times
     """Class for storing callbacks for specyfied addresses"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._callbs: dict = {}
 
     def add_callb(
@@ -30,14 +30,14 @@ class Callb_store:  # TODO find some more efficient way to store callbacks, FIXM
             else:
                 self._callbs[a] = [(1, callb)]
 
-    def run_callbs(self, addr: int, vals: List[int]):
+    def run_callbs(self, addr: int, vals: List[int]) -> None:
         for i, a in enumerate(range(addr, addr + len(vals))):
             x = self._callbs.get(a)
             if x != None:
                 for count, callb in x:
                     callb(a, [vals[i]])  # FIXME
 
-    def extend(self, cs):
+    def extend(self, cs) -> None:
         for a, v in cs._callbs:
             x = self._callbs.get(a)
             if x != None:

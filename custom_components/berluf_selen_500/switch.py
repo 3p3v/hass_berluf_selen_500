@@ -31,7 +31,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=SwitchEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 GWC switch",
+                    name="Selen GWC switch",
                 ),
             ),
         ]
@@ -47,7 +47,7 @@ class Berluf_selen_500_GWC(Berluf_selen_500_Entry, SwitchEntity):
         entity_description: SwitchEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(entry)
+        super().__init__(entry, "GWC")
         self.entity_description = entity_description
 
         self._impl = GWC(entry.runtime_data.get_device())

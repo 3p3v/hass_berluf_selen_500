@@ -6,14 +6,13 @@ import asyncio
 from homeassistant.helpers.device_registry import DeviceInfo
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .defs import ATTRIBUTION
 from .data import Berluf_selen_500_ConfigEntry
 
 
 class Berluf_selen_500_Entry:
     """berluf_selen_500 entry."""
 
-    _attr_attribution = ATTRIBUTION
+    # _attr_attribution = ATTRIBUTION
     _class_id = 0
 
     def __init__(

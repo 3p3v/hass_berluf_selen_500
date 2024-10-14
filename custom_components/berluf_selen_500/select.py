@@ -31,7 +31,7 @@ async def async_setup_entry(
                 entry=entry,
                 entity_description=SelectEntityDescription(
                     key="berluf_selen_500",
-                    name="Berluf Selen 500 heater cooler switch",
+                    name="Selen heater cooler switch",
                     options=Heater_cooler.Mode._member_names_,
                     # icon="mdi:format-quote-close",
                 ),

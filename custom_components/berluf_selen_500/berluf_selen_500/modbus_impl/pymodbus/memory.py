@@ -1,3 +1,4 @@
+from typing import override
 from custom_components.berluf_selen_500.berluf_selen_500.modbus_slave.validator import (
     Setter_validator,
     Validator,
@@ -9,7 +10,7 @@ from pymodbus.datastore import ModbusSparseDataBlock
 
 # %%
 class Pymodbus_memory(Memory_rw, ModbusSparseDataBlock):  # TODO change to proxy
-    """Memory implementation using pymodbus"""
+    """Memory implementation using pymodbus."""
 
     def __init__(
         self,
@@ -28,15 +29,19 @@ class Pymodbus_memory(Memory_rw, ModbusSparseDataBlock):  # TODO change to proxy
         return
 
     def _get_single_val(self, addr: int) -> int:
-        return self.getValues(addr, 1)[0]
+        return self.getValues(addr, 1)[0]  # TODO
 
     def _set_single_val(self, addr: int, val: int) -> None:
-        self.setValues(addr, [val])
+        self.setValues(addr, [val])  # TODO
         return
 
     def _set_multi_val(self, addr: int, val: list) -> None:
-        self.setValues(addr, val)
+        self.setValues(addr, val)  # TODO
         return
+
+    @override
+    def get_all_single_vals(self) -> dict[int, int]:
+        return self.values
 
     def setValues(self, address, vals):
         """Set the requested values of the datastore."""
@@ -53,7 +58,7 @@ class Pymodbus_memory(Memory_rw, ModbusSparseDataBlock):  # TODO change to proxy
         if result:
             # Check again but with validator this time
             try:
-                self._validator.validate(address, count)
+                self._validator.validate(address, count)  # TODO DELETE
             except:
                 # Violation
                 result = False

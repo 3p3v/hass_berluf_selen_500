@@ -56,13 +56,39 @@ class Memory:
     def get_address_list(self) -> list[int]:
         return self._validator.get_address_list()
 
+    def get_all_single_vals(self) -> dict[int, int]:
+        """Retreive values from memory."""
+        raise NotImplementedError()
 
-# class Memory_r(Memory):
-#     """Represents a Modbus readable memory (readable/writable by master)"""
+    def get_all_single_sorted_vals(self) -> list[tuple[int, int]]:
+        """Retreive values from memory, sorted by key."""
+        return sorted(self.get_all_single_vals().items())
 
-#     def __init__(self):
-#         super().__init__()
-#         return
+    def get_all_multi_vals(self) -> dict[int, list[int]]:
+        """Retreive values from memory in a more friendly form."""
+        single_vals = self.get_all_single_sorted_vals()
+
+        if len(single_vals) > 0:
+            # Algh
+            addr = single_vals[0][0]
+            offset = 1
+            val_list = [single_vals[0][1]]
+            # Return var
+            multi_vals = {addr: val_list}
+            # Algh
+            for a, v in single_vals[1:]:
+                if a == addr + offset:
+                    val_list.append(v)
+                    offset += 1
+                else:
+                    val_list = [v]
+                    multi_vals[a] = val_list
+                    addr = a
+                    offset = 1
+
+            return multi_vals
+        else:
+            return {}
 
 
 class Memory_rw(Memory):
@@ -83,11 +109,11 @@ class Memory_rw(Memory):
             self._impl._set_multi_val(addr, val)
             return
 
-        def update_handler(self, addr: int, handler: Validator_handler):
+        def update_handler(self, addr: int, handler: Validator_handler) -> None:
             self._impl._setter_validator.update_handler(addr, handler)
             return
 
-        def update(self, setter):
+        def update(self, setter) -> None:
             self._validator.update(setter._validator)
 
     def __init__(
