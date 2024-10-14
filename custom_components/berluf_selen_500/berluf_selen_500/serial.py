@@ -21,7 +21,7 @@ class Recup_serial_intf(Device_buildable_intf):  # TODO
         disconnect_callb: Callable[[Exception | None], None],
     ):
         self._impl = impl_builder.create_intf(
-            connect_callb, disconnect_callb, Serial_conf(com, 9600, 1, 8, "N")
+            connect_callb, disconnect_callb, Serial_conf(com, 9600, 1, 8, "O")
         )
         return
 
