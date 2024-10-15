@@ -290,15 +290,13 @@ class Recup_timeout_manager(Timeout_manager):
         self,
         device: Device,
         timer_factory: Timer_factory,
-        timeout: int,
         reset_callb: Callable[[], None],
         callb: Callable[[], None],
     ):
         super().__init__(
             device.holding_registers,
-            list(range(258, 258 + 6)),
             timer_factory,
-            timeout,
+            30,
             reset_callb,
             callb,
         )
@@ -452,7 +450,7 @@ class Error(Device_func):
         )
 
         self._timer = Recup_timeout_manager(
-            device, timer_factory, 30, self._reset_callb, self._timeout_callb
+            device, timer_factory, self._reset_callb, self._timeout_callb
         )
         self._timer.start()
 
